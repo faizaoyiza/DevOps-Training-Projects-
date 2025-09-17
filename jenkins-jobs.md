@@ -35,7 +35,7 @@ Jobs can be configured with:
 <img width="943" height="469" alt="Image" src="https://github.com/user-attachments/assets/6051e354-cada-4d5a-9fd4-1a97146d5970" />
 
 ---
-
+<img width="946" height="476" alt="Image" src="https://github.com/user-attachments/assets/8c4232da-4513-49fe-8856-53df2dbb6f74" />
 ## 🔹 Connecting Jenkins to GitHub (SCM Integration)
 
 1. Create a new GitHub repository called `jenkins-scm` (with a `README.md`).  
@@ -48,7 +48,8 @@ Jobs can be configured with:
 ✅ Jenkins will now pull code from your GitHub repo into the job.
 
 ---
-<img width="940" height="477" alt="Image" src="https://github.com/user-attachments/assets/c133b619-d1c4-4d3b-b806-0c0a675929f7" />
+<img width="935" height="477" alt="Image" src="https://github.com/user-attachments/assets/3be0d388-6dac-4cc4-a88f-3866384c2332" />
+<img width="932" height="485" alt="Image" src="https://github.com/user-attachments/assets/f8a6e503-3871-4648-941e-0237b71074b0" />
 ## 🔹 Configuring Build Triggers
 
 We can automate builds so they run on every code change:  
