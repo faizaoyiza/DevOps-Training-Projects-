@@ -2,7 +2,7 @@
 
 This guide explains how to create **Freestyle Jobs** and **Pipeline Jobs** in Jenkins, including integration with GitHub and automation using webhooks.
 
----
+--- 
 
 ## 🔹 What is a Jenkins Job?
 A **Jenkins job** is a unit of work executed by the Jenkins automation server. Jobs automate steps such as:
