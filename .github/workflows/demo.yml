@@ -1,0 +1,65 @@
+name: CI Pipeline
+
+# Trigger workflow on pushes and pull requests to main
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Define jobs
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # Run the job across multiple Node.js versions
+    strategy:
+      matrix:
+        node-version: [16, 18, 20]
+
+    # Environment variables available to all steps
+    env:
+      CUSTOM_VAR: my_value
+
+    steps:
+      # Step 1: Checkout repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js (matrix version)
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Step 4: Build application
+      - name: Build application
+        run: npm run build
+
+      # Step 5: Run tests
+      - name: Run tests
+        run: npm test
+
+      # Step 6: Use environment variable
+      - name: Print custom variable
+        run: echo "Custom var is $CUSTOM_VAR"
+
+      # Step 7: Use a secret (configured in repo settings)
+      - name: Use secret
+        run: echo "Access Token: ${{ secrets.ACCESS_TOKEN }}"
+
+      # Step 8: Conditional step (only runs on push to main)
+      - name: Conditional step
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: echo "This runs only on push to main"
+
+      # Step 9: Share outputs between steps
+      - id: step-one
+        run: echo "value=hello" >> $GITHUB_OUTPUT
+
+      - name: Use output from step-one
+        run: echo "Received value: ${{ steps.step-one.outputs.value }}"
