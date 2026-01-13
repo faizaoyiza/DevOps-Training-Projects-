@@ -62,4 +62,4 @@ jobs:
         run: echo "value=hello" >> $GITHUB_OUTPUT
 
       - name: Use output from step-one
-        run: echo "Received value: ${{ steps.step-one.outputs.value }}"
+        run: echo "Received value: ${{ steps.step-one.outputs.value }}" 
