@@ -2,197 +2,261 @@
 
 ## Introduction
 
-In this mini project, I explored two fundamental concepts in software development and cloud computing: **Infrastructure Environments** and **Environment Variables**. Although both concepts contain the word *environment*, they serve different purposes. Understanding the difference between them is essential for developing flexible, reusable, and maintainable automation scripts.
-
-This project also introduced the basics of shell scripting by creating an `aws_cloud_manager.sh` script that uses environment variables, command-line arguments, and input validation to determine which infrastructure environment the script should target.
+In this mini project, I explored how infrastructure environments and environment variables are used to create reusable shell scripts for cloud infrastructure automation. I also implemented command-line arguments, input validation, and AWS CLI commands to dynamically provision cloud resources depending on the selected environment.
 
 ---
 
 # Understanding Infrastructure Environments
 
-Infrastructure environments are the different stages through which an application progresses during its lifecycle. Each environment serves a specific purpose and ensures that software is developed, tested, and deployed safely.
+Infrastructure environments represent the different stages where an application is developed, tested, and deployed.
 
-For this project, I considered the example of a FinTech application with three separate environments:
+For this project, three environments were considered:
 
-- **Development Environment:** A local Ubuntu machine running on VirtualBox where developers build and test the application.
-- **Testing Environment:** An EC2 instance hosted in the first AWS account where the application undergoes further testing.
-- **Production Environment:** An EC2 instance hosted in a second AWS account where the live application is deployed for customers.
+- **Development Environment** – Local Ubuntu machine used for development.
+- **Testing Environment** – EC2 instance hosted in the AWS Testing account.
+- **Production Environment** – EC2 instance hosted in the AWS Production account.
 
-Each environment has its own infrastructure and configuration, allowing development, testing, and production activities to remain isolated from one another.
+Each environment has its own resources and configuration while using the same shell script.
 
 ---
 
 # Understanding Environment Variables
 
-Environment variables are **key-value pairs** that store configuration settings used by scripts and applications. Rather than hard-coding configuration values, environment variables allow applications to adjust automatically depending on the environment in which they are running.
+Environment variables are key-value pairs that allow scripts to behave differently depending on the environment in which they are executed.
 
-For example, a FinTech application that connects to a database requires different connection details for each environment.
+Example configuration:
 
-## Development Environment
+## Development
 
 ```bash
 DB_URL=localhost
-DB_USER=test_user
-DB_PASS=test_pass
+DB_USER=dev_user
+DB_PASS=dev_password
 ```
 
-These variables point to a local database where developers can safely test new features.
-
-## Testing Environment
+## Testing
 
 ```bash
 DB_URL=testing-db.example.com
-DB_USER=testing_user
-DB_PASS=testing_pass
+DB_USER=test_user
+DB_PASS=test_password
 ```
 
-These variables connect the application to a dedicated testing database that closely resembles the production environment.
-
-## Production Environment
+## Production
 
 ```bash
 DB_URL=production-db.example.com
 DB_USER=prod_user
-DB_PASS=prod_pass
+DB_PASS=prod_password
 ```
 
-These values connect the application to the live production database used by customers.
-
-Using environment variables allows the same application code to be deployed across multiple environments without modifying the source code.
+Instead of modifying the script whenever the environment changes, these values are loaded dynamically.
 
 ---
 
 # Creating the Shell Script
 
-To begin applying these concepts, I created a shell script named:
+The project began by creating a shell script named:
 
 ```bash
 aws_cloud_manager.sh
 ```
 
-After creating the file, I made it executable using:
+The script was made executable using:
 
 ```bash
-sudo chmod +x aws_cloud_manager.sh
+chmod +x aws_cloud_manager.sh
 ```
-
-The first version of the script checked whether an environment variable named `ENVIRONMENT` had been set.
-
-If no environment variable existed, the script automatically executed the `else` block because there was no environment information available.
-
-I then exported an environment variable from the terminal:
-
-```bash
-export ENVIRONMENT=production
-```
-
-Running the script after exporting this variable caused it to recognize that it was operating in the **production** environment.
-
-This demonstrates how environment variables allow a script to change its behavior dynamically without modifying the script itself.
 
 ---
 
-# Hard-Coding vs Dynamic Configuration
+# Accepting Command-Line Arguments
 
-I also explored the difference between hard-coded values and dynamic configuration.
-
-For example:
-
-```bash
-ENVIRONMENT=testing
-```
-
-Placing this line inside the script forces it to always run as though it is in the testing environment.
-
-Although this works, it is not considered a good practice because changing environments would require editing the script every time it is executed.
-
-A better solution is to allow users to specify the environment when running the script.
-
----
-
-# Using Positional Parameters
-
-Shell scripting provides **positional parameters**, which allow scripts to accept values at runtime.
-
-Inside the script:
-
-```bash
-ENVIRONMENT=$1
-```
-
-The variable `$1` represents the first argument supplied when executing the script.
+Rather than hard-coding values, the script accepts the target environment as a command-line argument.
 
 Example:
+
+```bash
+./aws_cloud_manager.sh development
+```
+
+or
 
 ```bash
 ./aws_cloud_manager.sh testing
 ```
 
-In this case:
-
-- `$1` = `testing`
-- `ENVIRONMENT` = `testing`
-
-The script can also accept multiple arguments.
-
-Example:
+or
 
 ```bash
-./aws_cloud_manager.sh testing 5
+./aws_cloud_manager.sh production
 ```
 
 Inside the script:
 
 ```bash
 ENVIRONMENT=$1
-NUMBER_OF_INSTANCES=$2
 ```
 
-Where:
-
-- `$1` stores the selected environment.
-- `$2` stores the number of EC2 instances to provision.
-
-This makes the script more flexible and reusable across different environments.
+This makes the script reusable for multiple environments.
 
 ---
 
 # Validating User Input
 
-To make the script more reliable, I implemented argument validation.
+The script first checks that exactly one argument has been supplied.
 
-The script checks whether exactly **one argument** has been supplied before continuing execution.
+```bash
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 {development|testing|production}"
+    exit 1
+fi
+```
 
-The validation uses:
+If no environment or multiple environments are supplied, the script exits with an informative error message.
 
-- `$#` – Returns the number of arguments passed to the script.
-- `-ne` – Means "not equal."
-- `$0` – Represents the script's filename.
+---
 
-If the required argument is missing or too many arguments are provided, the script displays a helpful usage message and exits with a status code of **1**.
+# Dynamic Environment Configuration
 
-This validation helps prevent execution errors and provides users with clear guidance on how to run the script correctly.
+The script uses conditional statements to load different configuration values depending on the selected environment.
+
+```bash
+if [ "$ENVIRONMENT" = "development" ]; then
+
+    INSTANCE_NAME="Dev-Server"
+    INSTANCE_TYPE="t2.micro"
+    DB_URL="localhost"
+
+elif [ "$ENVIRONMENT" = "testing" ]; then
+
+    INSTANCE_NAME="Test-Server"
+    INSTANCE_TYPE="t2.small"
+    DB_URL="testing-db.example.com"
+
+elif [ "$ENVIRONMENT" = "production" ]; then
+
+    INSTANCE_NAME="Production-Server"
+    INSTANCE_TYPE="t2.medium"
+    DB_URL="production-db.example.com"
+
+else
+
+    echo "Invalid environment."
+
+    echo "Choose development, testing or production."
+
+    exit 1
+
+fi
+```
+
+This demonstrates that the script behaves differently depending on the environment selected by the user.
+
+---
+
+# AWS CLI Integration
+
+One of the primary objectives of this project was to integrate AWS CLI into the shell script.
+
+After determining the environment, the script provisions an EC2 instance dynamically using AWS CLI.
+
+Example:
+
+```bash
+aws ec2 run-instances \
+--image-id ami-0abcdef1234567890 \
+--count 1 \
+--instance-type $INSTANCE_TYPE \
+--key-name my-keypair \
+--security-groups default \
+--tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$INSTANCE_NAME}]"
+```
+
+The values passed to the AWS CLI command depend on the environment selected.
+
+For example:
+
+### Development
+
+- Instance Name: Dev-Server
+- Instance Type: t2.micro
+
+### Testing
+
+- Instance Name: Test-Server
+- Instance Type: t2.small
+
+### Production
+
+- Instance Name: Production-Server
+- Instance Type: t2.medium
+
+This allows one script to provision different infrastructure without changing the code.
+
+---
+
+# Improved Error Handling
+
+Additional validation was added to improve the user experience.
+
+If an invalid environment is entered:
+
+```bash
+./aws_cloud_manager.sh demo
+```
+
+The script displays:
+
+```text
+Invalid environment.
+
+Please choose one of the following:
+
+development
+testing
+production
+```
+
+If AWS CLI is not installed, the script also checks for it before execution.
+
+```bash
+if ! command -v aws &> /dev/null
+then
+    echo "AWS CLI is not installed."
+
+    exit 1
+fi
+```
+
+Similarly, the script verifies that AWS credentials have been configured.
+
+```bash
+aws sts get-caller-identity
+```
+
+If authentication fails, the script exits and instructs the user to configure AWS credentials.
 
 ---
 
 # Key Concepts Learned
 
-Through this mini project, I learned:
+Through this project, I learned how to:
 
-- The difference between infrastructure environments and environment variables.
-- How development, testing, and production environments are separated in real-world deployments.
-- How environment variables make scripts dynamic by storing configuration values outside the code.
-- How to use the `export` command to define environment variables.
-- How positional parameters (`$1`, `$2`) allow scripts to accept user input during execution.
-- How to validate command-line arguments using `$#`, `-ne`, and exit codes.
-- Why avoiding hard-coded values makes scripts more reusable and maintainable.
+- Differentiate between infrastructure environments and environment variables.
+- Use environment variables to make scripts reusable.
+- Accept user input using positional parameters.
+- Validate command-line arguments.
+- Implement conditional logic based on environment selection.
+- Improve user feedback through meaningful error messages.
+- Integrate AWS CLI commands into shell scripts.
+- Dynamically provision EC2 instances using different configurations.
+- Build flexible automation scripts suitable for DevOps workflows.
 
 ---
 
 # Conclusion
 
-This mini project provided a practical introduction to infrastructure environments, environment variables, and shell scripting.
+This mini project strengthened my understanding of shell scripting, environment variables, and infrastructure automation using AWS CLI. By combining command-line arguments, conditional logic, environment-specific configurations, and AWS CLI commands, I developed a reusable automation script capable of provisioning different EC2 instances for development, testing, and production environments.
 
-I learned that infrastructure environments represent the different stages of application deployment, while environment variables provide a flexible way to configure applications without modifying the code. I also gained hands-on experience using the `export` command, positional parameters, and argument validation to build more dynamic and reliable shell scripts.
-
-Overall, this project established a strong foundation for writing reusable automation scripts that can efficiently manage cloud infrastructure across multiple environments, an essential skill in DevOps engineering.
+Overall, the project demonstrated how DevOps engineers use a single script to automate cloud infrastructure deployment while adapting dynamically to different environments, reducing manual configuration and improving consistency.
